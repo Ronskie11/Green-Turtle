@@ -214,47 +214,56 @@
             document.getElementById('commentary-text').innerText = comment;
         }
 
-        function saveCoachingLog(e) {
-            e.preventDefault();
-            alert("Coaching entry saved internally.");
-            e.target.reset();
-            toggleCoachingLog();
-        }
-
-        // UPDATED DRILLDOWN FUNCTION
         function openDrilldown(m, index) {
             const actual = charts[m].data.datasets[0].data[index];
             const target = targets[m];
-            const diff = actual - target;
             const period = getLabels()[index];
             
             document.getElementById('modalTitle').innerText = `${metricsFull[m]} Drilldown - ${period}`;
-            
             let modalHtml = '';
 
             if (currentView === 'Team') {
                 const selectedTeam = document.getElementById('entity-selector').value;
+                
+                // Enhanced Analyst Data Generation
+                const analystData = analysts.map(name => {
+                    const currentScore = Math.min(Math.round(targets[m] + (Math.random() * 20 - 15)), 100);
+                    const prevScore = Math.min(Math.round(targets[m] + (Math.random() * 20 - 15)), 100);
+                    return { name, score: currentScore, trend: currentScore - prevScore };
+                });
+                
+                const topScore = Math.max(...analystData.map(a => a.score));
+
                 modalHtml = `
                     <div class="mb-4">
                         <p class="text-[10px] font-black text-gray-400 uppercase">Team Breakdown</p>
                         <h3 class="text-lg font-black text-green-700">${selectedTeam} Performance</h3>
                     </div>
-                    <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        ${analysts.map(name => {
-                            const score = Math.min(Math.round(targets[m] + (Math.random() * 20 - 15)), 100);
-                            const color = score < targets[m] ? 'text-red-500' : 'text-green-600';
+                    <div class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                        ${analystData.map(a => {
+                            const isTop = a.score === topScore;
+                            const color = a.score < targets[m] ? 'text-red-500' : 'text-green-600';
+                            const trendIcon = a.trend >= 0 ? '<span class="text-green-500 text-[10px]">▲</span>' : '<span class="text-red-500 text-[10px]">▼</span>';
+                            const badge = isTop ? '<span class="ml-2 bg-yellow-100 text-yellow-700 text-[8px] px-1.5 py-0.5 rounded-full border border-yellow-400 font-black">⭐ TOP PERFORMER</span>' : '';
+                            const rowStyle = isTop ? 'border-yellow-300 bg-yellow-50 shadow-sm' : 'border-gray-100 bg-gray-50';
+                            
                             return `
-                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-100">
-                                    <span class="text-xs font-bold text-gray-700">${name}</span>
+                                <div class="flex justify-between items-center p-3 rounded border ${rowStyle}">
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center">
+                                            <span class="text-xs font-bold text-gray-700">${a.name}</span>
+                                            ${badge}
+                                        </div>
+                                        <span class="text-[9px] text-gray-400 font-bold uppercase">Trend: ${trendIcon} ${Math.abs(a.trend)}% vs Prev.</span>
+                                    </div>
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-xs font-black ${color}">${score}%</span>
-                                        <button onclick="toggleCoachingLog();" class="text-[9px] bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded font-black uppercase">Coach</button>
+                                        <span class="text-sm font-black ${color}">${a.score}%</span>
+                                        <button onclick="toggleCoachingLog();" class="text-[9px] bg-white hover:bg-gray-100 border border-gray-300 px-3 py-1.5 rounded font-black uppercase">Coach</button>
                                     </div>
                                 </div>
                             `;
                         }).join('')}
                     </div>
-                    <p class="mt-4 text-[9px] text-gray-400 italic font-medium">* Analyst data generated based on ${period} logs.</p>
                 `;
             } else {
                 modalHtml = `
@@ -266,17 +275,23 @@
                     <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                         <p class="text-[10px] font-black text-gray-400 uppercase mb-2">Recommended Action Items</p>
                         <ul class="text-xs space-y-2 text-gray-700">
-                            <li class="flex items-center">✅ Review root cause of ${diff < 0 ? 'underperformance' : 'variance'}</li>
-                            <li class="flex items-center">✅ Schedule 1:1 coaching session</li>
-                            <li class="flex items-center">✅ Update process documentation</li>
+                            <li>✅ Review root cause of variance</li>
+                            <li>✅ Schedule 1:1 coaching session</li>
                         </ul>
                     </div>
-                    <button onclick="closeModal(); toggleCoachingLog();" class="w-full bg-black text-white py-3 rounded text-[10px] font-black uppercase shadow-lg">Initiate Coaching</button>
+                    <button onclick="closeModal(); toggleCoachingLog();" class="w-full bg-black text-white py-3 rounded text-[10px] font-black uppercase">Initiate Coaching</button>
                 `;
             }
 
             document.getElementById('modalContent').innerHTML = modalHtml;
             document.getElementById('drillModal').classList.remove('hidden');
+        }
+
+        function saveCoachingLog(e) {
+            e.preventDefault();
+            alert("Coaching entry saved internally for " + document.getElementById('logAnalyst').value);
+            e.target.reset();
+            toggleCoachingLog();
         }
 
         function toggleCoachingLog() { document.getElementById('coachingModal').classList.toggle('hidden'); }
