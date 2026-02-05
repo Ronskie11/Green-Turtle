@@ -7,8 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .accenture-green { background-color: #00853E; }
+        .sidebar-item { display: flex; align-items: center; transition: 0.2s; }
         .sidebar-item.active { border-left: 4px solid #00853E; background-color: #f3f4f6; color: #00853E; font-weight: bold; }
         .tab-btn.active { border-bottom: 4px solid #00853E; color: #00853E; font-weight: bold; }
         .toggle-active { background-color: #00853E !important; color: white !important; font-weight: 900; }
@@ -21,6 +23,8 @@
         .search-input:focus { border-color: #00853E; ring: 2px; ring-color: #00853E; }
         .chart-card { background: white; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; height: 260px; transition: 0.2s hover; cursor: pointer; }
         .chart-card:hover { border-color: #00853E; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        /* Icon sizing */
+        .nav-icon { width: 18px; height: 18px; margin-right: 12px; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans overflow-hidden text-gray-800">
@@ -31,21 +35,36 @@
             
             <nav class="mt-4 flex-1">
                 <p class="px-6 py-2 text-[10px] font-black text-gray-400 uppercase">Navigation</p>
-                <div id="btn-Deal" onclick="setView('Deal')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50 active">Deal Overview</div>
-                <div id="btn-Team" onclick="setView('Team')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">Per Team Trend</div>
-                <div id="btn-Analyst" onclick="setView('Analyst')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">Per Analyst Trend</div>
                 
-                <div class="mt-4 px-6 space-y-2">
+                <div id="btn-Deal" onclick="setView('Deal')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50 active">
+                    <i data-lucide="layout-dashboard" class="nav-icon"></i> Deal Overview
+                </div>
+                <div id="btn-Team" onclick="setView('Team')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">
+                    <i data-lucide="users" class="nav-icon"></i> Per Team Trend
+                </div>
+                <div id="btn-Analyst" onclick="setView('Analyst')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">
+                    <i data-lucide="trending-up" class="nav-icon"></i> Per Analyst Trend
+                </div>
+                
+                <div class="mx-6 my-4 border-t border-gray-200"></div>
+
+                <div class="px-6 space-y-2">
                     <p class="py-2 text-[10px] font-black text-gray-400 uppercase">Utilities</p>
-                    <button onclick="alert('Upload Excel Triggered')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-dashed border-gray-300 italic">📁 Upload Excel</button>
-                    <button onclick="alert('Exporting to PDF...')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">📄 Export PDF</button>
-                    <button onclick="location.reload()" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">🔄 Reset Dashboard</button>
+                    <button onclick="alert('Upload Excel Triggered')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-dashed border-gray-300 italic">
+                        <i data-lucide="file-up" class="w-3 h-3 mr-2"></i> Upload Excel
+                    </button>
+                    <button onclick="alert('Exporting to PDF...')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">
+                        <i data-lucide="file-text" class="w-3 h-3 mr-2"></i> Export PDF
+                    </button>
+                    <button onclick="location.reload()" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">
+                        <i data-lucide="refresh-cw" class="w-3 h-3 mr-2"></i> Reset Dashboard
+                    </button>
                 </div>
             </nav>
 
             <div class="p-4 space-y-3 bg-gray-50 border-t">
                 <button onclick="toggleCoachingLog()" class="coaching-btn util-btn flex items-center justify-center w-full py-3 rounded-lg shadow-lg">
-                    📢 Open Coaching Log
+                    <i data-lucide="megaphone" class="w-4 h-4 mr-2"></i> Open Coaching Log
                 </button>
                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center italic">v2.1 Performance Suite</div>
             </div>
@@ -81,7 +100,7 @@
                     <div class="chart-card border-l-4 border-l-purple-500 bg-purple-50/30">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-[10px] font-black text-purple-600 uppercase tracking-widest italic">Efficiency %</h3>
-                            <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Higher is better</span>
+                            <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded"></span>
                         </div>
                         <canvas id="effChart"></canvas>
                     </div>
@@ -144,6 +163,9 @@
     </div>
 
     <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
         Chart.register(ChartDataLabels);
         let currentWS = 'Fraud', currentView = 'Deal', currentTimeline = 'Monthly';
         let charts = {};
@@ -205,7 +227,7 @@
             Object.keys(charts).forEach(m => {
                 charts[m].data.labels = getLabels();
                 charts[m].data.datasets[0].data = getData(m);
-                charts[m].data.datasets[1].data = getLabels().map(() => targets[m]); // Ensure target line covers all weeks
+                charts[m].data.datasets[1].data = getLabels().map(() => targets[m]); 
                 charts[m].update();
             });
             updateRAG();
@@ -218,8 +240,6 @@
                 const current = charts[m].data.datasets[0].data.slice(-1)[0];
                 const target = targets[m];
                 let colorClass = 'border-green-500';
-                
-                // Logic: Shrinkage is red if HIGH, others red if LOW
                 const isFailing = m === 'shrk' ? (current > target + 5) : (current < target - 5);
                 const isWarning = m === 'shrk' ? (current > target) : (current < target);
 
