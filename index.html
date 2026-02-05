@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Turtle Operations Hub | Internal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        .accenture-green { background-color: #00853E; }
+        .sidebar-item.active { border-left: 4px solid #00853E; background-color: #f3f4f6; color: #00853E; font-weight: bold; }
+        .tab-btn.active { border-bottom: 4px solid #00853E; color: #00853E; font-weight: bold; }
+        .toggle-active { background-color: #00853E !important; color: white !important; font-weight: 900; }
+        .modal-bg { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        .util-btn { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
+        .coaching-btn { background-color: #1e293b; color: white; border: 1px solid #334155; }
+        .coaching-btn:hover { background-color: #00853E; border-color: #00853E; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans overflow-hidden text-gray-800">
+
+    <div class="flex h-screen relative">
+        <div class="w-64 bg-white shadow-xl z-10 flex flex-col border-r">
+            <div class="p-6 accenture-green text-white font-bold text-xl uppercase tracking-tighter text-center">Green Turtle Hub</div>
+            
+            <nav class="mt-4 flex-1">
+                <p class="px-6 py-2 text-[10px] font-black text-gray-400 uppercase">Navigation</p>
+                <div id="btn-Deal" onclick="setView('Deal')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50 active">Deal Overview</div>
+                <div id="btn-Team" onclick="setView('Team')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">Per Team Trend</div>
+                <div id="btn-Analyst" onclick="setView('Analyst')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">Per Analyst Trend</div>
+                
+                <div class="mt-4 px-6 space-y-2">
+                    <p class="py-2 text-[10px] font-black text-gray-400 uppercase">Utilities</p>
+                    <button onclick="alert('Upload Excel Triggered')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-dashed border-gray-300 italic">📁 Upload Excel</button>
+                    <button onclick="alert('Exporting to PDF...')" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">📄 Export PDF</button>
+                    <button onclick="location.reload()" class="util-btn flex items-center w-full p-2 text-gray-500 rounded border border-gray-200">🔄 Reset Dashboard</button>
+                </div>
+            </nav>
+
+            <div class="p-4 space-y-3 bg-gray-50 border-t">
+                <button onclick="toggleCoachingLog()" class="coaching-btn util-btn flex items-center justify-center w-full py-3 rounded-lg shadow-lg">
+                    📢 Open Coaching Log
+                </button>
+                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">Internal Use Only</div>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b">
+                <div class="flex items-center space-x-6 ml-4">
+                    <div class="flex space-x-4 border-r pr-6">
+                        <button onclick="setWorkstream('Fraud', this)" class="tab-btn pb-2 active text-xs font-black uppercase">Fraud</button>
+                        <button onclick="setWorkstream('KYC', this)" class="tab-btn pb-2 text-gray-400 font-black text-xs uppercase">KYC</button>
+                        <button onclick="setWorkstream('AML', this)" class="tab-btn pb-2 text-gray-400 font-black text-xs uppercase">AML</button>
+                    </div>
+                    <div class="flex bg-gray-200 rounded-lg p-1 w-36 shadow-inner">
+                        <button id="toggle-MoM" onclick="setTimeline('MoM')" class="flex-1 py-1 rounded text-[10px] toggle-active">MoM</button>
+                        <button id="toggle-MTD" onclick="setTimeline('MTD')" class="flex-1 py-1 rounded text-[10px] text-gray-500 font-black">MTD</button>
+                    </div>
+                    <div id="entity-selector-container" class="hidden flex items-center bg-gray-100 rounded px-3 py-1 border border-gray-300">
+                        <select id="entity-selector" onchange="refresh()" class="bg-transparent text-xs font-black text-green-800 outline-none cursor-pointer"></select>
+                    </div>
+                </div>
+                <div id="breadcrumb" class="text-[10px] font-black text-gray-400 mr-4 uppercase tracking-[0.2em]">DEAL / FRAUD / MOM</div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div id="rag-container" class="grid grid-cols-4 gap-4"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow border h-64 cursor-pointer hover:border-green-400 transition">
+                        <h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Utilization</h3>
+                        <canvas id="utilChart"></canvas>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow border h-64 cursor-pointer hover:border-green-400 transition">
+                        <h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Productivity</h3>
+                        <canvas id="prodChart"></canvas>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow border h-64 cursor-pointer hover:border-green-400 transition">
+                        <h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Quality</h3>
+                        <canvas id="qualChart"></canvas>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow border h-64 cursor-pointer hover:border-green-400 transition">
+                        <h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Attendance</h3>
+                        <canvas id="attChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow border border-l-[12px] border-blue-600">
+                    <h4 class="text-[11px] font-black text-blue-600 uppercase mb-2">Executive Summary</h4>
+                    <p id="commentary-text" class="text-sm font-medium italic text-gray-700"></p>
+                </div>
+            </main>
+        </div>
+
+        <div id="drillModal" class="fixed inset-0 z-[100] hidden modal-bg flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div class="accenture-green p-4 flex justify-between items-center text-white">
+                    <h2 id="modalTitle" class="font-bold uppercase text-xs tracking-widest">Analysis</h2>
+                    <button onclick="closeModal()" class="text-2xl leading-none">&times;</button>
+                </div>
+                <div id="modalContent" class="p-8"></div>
+            </div>
+        </div>
+
+        <div id="coachingModal" class="fixed inset-0 z-[110] hidden modal-bg flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-t-8 border-green-700">
+                <form id="coachingForm" onsubmit="saveCoachingLog(event)" class="p-6">
+                    <h2 class="text-xl font-black text-gray-800 mb-1">Performance Coaching</h2>
+                    <p class="text-[10px] text-gray-400 uppercase font-black mb-6">Internal Documentation Only</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Select Analyst</label>
+                            <select id="logAnalyst" class="w-full border rounded p-2 text-sm font-bold bg-gray-50 outline-none">
+                                <option>Mari Esparza</option><option>Boss Darwin</option><option>Mark Butas</option><option>Angel Acosta</option><option>Kiezel Vega</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Target Metric</label>
+                            <select id="logMetric" class="w-full border rounded p-2 text-sm font-bold bg-gray-50 outline-none">
+                                <option>Utilization</option><option>Productivity</option><option>Quality</option><option>Attendance</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Action Notes</label>
+                            <textarea id="logNotes" required class="w-full border rounded p-3 text-sm min-h-[100px] focus:ring-2 focus:ring-green-500 outline-none" placeholder="Root cause and agreed resolution..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3 border-t pt-4">
+                        <button type="button" onclick="toggleCoachingLog()" class="px-4 py-2 text-xs font-black uppercase text-gray-400">Cancel</button>
+                        <button type="submit" class="accenture-green text-white px-6 py-2 rounded text-xs font-black uppercase shadow-lg hover:brightness-110">Save to Log</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        let currentWS = 'Fraud', currentView = 'Deal', currentTimeline = 'MoM';
+        let charts = {};
+        const metricsFull = { util: 'Utilization', prod: 'Productivity', qual: 'Quality', att: 'Attendance' };
+        const targets = { util: 90, prod: 85, qual: 95, att: 98 };
+        const analysts = ['Mari Esparza', 'Boss Darwin', 'Mark Butas', 'Angel Acosta', 'Kiezel Vega'];
+
+        function getLabels() { return currentTimeline === 'MoM' ? ['Oct', 'Nov', 'Dec'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']; }
+        function getData(m) { return getLabels().map(() => Math.min(Math.round(targets[m] + (Math.random() * 18 - 10)), 100)); }
+
+        function initCharts() {
+            Object.keys(metricsFull).forEach(m => {
+                const ctx = document.getElementById(m + 'Chart').getContext('2d');
+                charts[m] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: getLabels(),
+                        datasets: [
+                            { label: 'Actual', data: getData(m), backgroundColor: '#00853E', borderRadius: 4, order: 2 },
+                            { label: 'Target', data: getLabels().map(() => targets[m]), borderColor: '#ff4d4d', borderWidth: 2, borderDash: [5, 5], type: 'line', pointRadius: 0, order: 1 }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 30 } },
+                        onClick: (e, els) => { if (els.length > 0) openDrilldown(m, els[0].index); },
+                        plugins: {
+                            datalabels: { anchor: 'end', align: 'top', color: '#000', font: { weight: '900', size: 10 }, formatter: (v, c) => c.datasetIndex === 0 ? v + '%' : '' },
+                            legend: { display: false }
+                        },
+                        scales: { y: { beginAtZero: true, max: 115, display: false }, x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } } }
+                    }
+                });
+            });
+            refresh();
+        }
+
+        function refresh() {
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.toggle('active', i.id === `btn-${currentView}`));
+            document.getElementById('breadcrumb').innerText = `${currentView} / ${currentWS} / ${currentTimeline}`;
+            Object.keys(charts).forEach(m => {
+                charts[m].data.labels = getLabels();
+                charts[m].data.datasets[0].data = getData(m);
+                charts[m].update();
+            });
+            updateRAG();
+        }
+
+        function updateRAG() {
+            let html = '';
+            let failures = [];
+            Object.keys(metricsFull).forEach(m => {
+                const current = charts[m].data.datasets[0].data.slice(-1)[0];
+                const target = targets[m];
+                let colorClass = 'border-green-500';
+                
+                if (current < target - 5) { colorClass = 'border-red-500'; failures.push(metricsFull[m]); }
+                else if (current < target) { colorClass = 'border-yellow-500'; }
+
+                html += `<div class="bg-white p-4 rounded shadow border-l-8 ${colorClass}">
+                    <p class="text-[9px] font-black text-gray-400 uppercase">${metricsFull[m]}</p>
+                    <div class="flex items-baseline justify-between mt-1">
+                        <span class="text-xl font-black">${current}%</span>
+                        <span class="text-[9px] text-gray-400 font-bold">TGT: ${target}%</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('rag-container').innerHTML = html;
+            
+            const comment = failures.length > 0 
+                ? `Critical Variance: ${failures.join(' & ')} underperforming. Deep-dive coaching required for the current period.`
+                : `Health Check: All workstreams for ${currentWS} are meeting or approaching targets. Maintenance mode active.`;
+            document.getElementById('commentary-text').innerText = comment;
+        }
+
+        function saveCoachingLog(e) {
+            e.preventDefault();
+            alert("Coaching entry saved internally.");
+            e.target.reset();
+            toggleCoachingLog();
+        }
+
+        // UPDATED DRILLDOWN FUNCTION
+        function openDrilldown(m, index) {
+            const actual = charts[m].data.datasets[0].data[index];
+            const target = targets[m];
+            const diff = actual - target;
+            const period = getLabels()[index];
+            
+            document.getElementById('modalTitle').innerText = `${metricsFull[m]} Drilldown - ${period}`;
+            
+            let modalHtml = '';
+
+            if (currentView === 'Team') {
+                const selectedTeam = document.getElementById('entity-selector').value;
+                modalHtml = `
+                    <div class="mb-4">
+                        <p class="text-[10px] font-black text-gray-400 uppercase">Team Breakdown</p>
+                        <h3 class="text-lg font-black text-green-700">${selectedTeam} Performance</h3>
+                    </div>
+                    <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        ${analysts.map(name => {
+                            const score = Math.min(Math.round(targets[m] + (Math.random() * 20 - 15)), 100);
+                            const color = score < targets[m] ? 'text-red-500' : 'text-green-600';
+                            return `
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-100">
+                                    <span class="text-xs font-bold text-gray-700">${name}</span>
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-xs font-black ${color}">${score}%</span>
+                                        <button onclick="toggleCoachingLog();" class="text-[9px] bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded font-black uppercase">Coach</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <p class="mt-4 text-[9px] text-gray-400 italic font-medium">* Analyst data generated based on ${period} logs.</p>
+                `;
+            } else {
+                modalHtml = `
+                    <div class="text-center">
+                        <p class="text-[10px] font-black text-gray-400 uppercase">Snapshot</p>
+                        <p class="text-5xl font-black my-2">${actual}%</p>
+                        <p class="text-xs text-gray-500 italic mb-6">Target: ${target}%</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border mb-6">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-2">Recommended Action Items</p>
+                        <ul class="text-xs space-y-2 text-gray-700">
+                            <li class="flex items-center">✅ Review root cause of ${diff < 0 ? 'underperformance' : 'variance'}</li>
+                            <li class="flex items-center">✅ Schedule 1:1 coaching session</li>
+                            <li class="flex items-center">✅ Update process documentation</li>
+                        </ul>
+                    </div>
+                    <button onclick="closeModal(); toggleCoachingLog();" class="w-full bg-black text-white py-3 rounded text-[10px] font-black uppercase shadow-lg">Initiate Coaching</button>
+                `;
+            }
+
+            document.getElementById('modalContent').innerHTML = modalHtml;
+            document.getElementById('drillModal').classList.remove('hidden');
+        }
+
+        function toggleCoachingLog() { document.getElementById('coachingModal').classList.toggle('hidden'); }
+        function closeModal() { document.getElementById('drillModal').classList.add('hidden'); }
+        
+        function setTimeline(tl) { 
+            currentTimeline = tl; 
+            document.getElementById('toggle-MoM').className = tl === 'MoM' ? 'flex-1 py-1 rounded text-[10px] toggle-active' : 'flex-1 py-1 rounded text-[10px] text-gray-500 font-black';
+            document.getElementById('toggle-MTD').className = tl === 'MTD' ? 'flex-1 py-1 rounded text-[10px] toggle-active' : 'flex-1 py-1 rounded text-[10px] text-gray-500 font-black';
+            refresh(); 
+        }
+        
+        function setView(v) { 
+            currentView = v; 
+            const container = document.getElementById('entity-selector-container');
+            if (v === 'Deal') { container.classList.add('hidden'); } 
+            else {
+                container.classList.remove('hidden');
+                document.getElementById('entity-selector').innerHTML = v === 'Team' ? ['Alpha', 'Beta', 'Gamma'].map(t => `<option>Team ${t}</option>`).join('') : analysts.map(a => `<option>${a}</option>`).join('');
+            }
+            refresh(); 
+        }
+        
+        function setWorkstream(ws, btn) {
+            currentWS = ws;
+            document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active', 'text-gray-800'); b.classList.add('text-gray-400'); });
+            btn.classList.add('active', 'text-gray-800');
+            refresh();
+        }
+
+        window.onload = initCharts;
+    </script>
+</body>
+</html>
