@@ -4,181 +4,248 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green Turtle Operations Hub | Internal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .accenture-green { background-color: #00853E; }
-        .sidebar-item { display: flex; align-items: center; transition: 0.2s; }
-        .sidebar-item.active { border-left: 4px solid #00853E; background-color: #f3f4f6; color: #00853E; font-weight: bold; }
-        .tab-btn.active { border-bottom: 4px solid #00853E; color: #00853E; font-weight: bold; }
-        .toggle-active { background-color: #00853E !important; color: white !important; font-weight: 900; }
-        .modal-bg { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
-        
-        /* Updated utility button styles */
-        .util-btn { 
-            font-size: 10px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            letter-spacing: 0.05em; 
-            transition: all 0.15s ease; 
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
-        .util-btn:hover i { transform: scale(1.15); }
-        .util-btn:active { transform: translateY(1px); }
-        
-        .coaching-btn { background-color: #1e293b; color: white; border: 1px solid #334155; }
-        .coaching-btn:hover { background-color: #00853E; border-color: #00853E; }
+        .accenture-green { background-color: #00853E; }
+        .sidebar-item { 
+            display: flex; 
+            align-items: center; 
+            transition: all 0.25s ease; 
+            border-radius: 0.5rem;
+        }
+        .sidebar-item:hover { background-color: #f1f5f9; }
+        .sidebar-item.active { 
+            border-left: 4px solid #00853E; 
+            background-color: #f3f4f6; 
+            color: #00853E; 
+            font-weight: 600; 
+        }
+        .tab-btn.active { 
+            border-bottom: 4px solid #00853E; 
+            color: #00853E; 
+            font-weight: 600; 
+        }
+        .toggle-active { 
+            background-color: #00853E !important; 
+            color: white !important; 
+            font-weight: 700; 
+        }
+        .modal-bg { 
+            background: rgba(0,0,0,0.65); 
+            backdrop-filter: blur(6px); 
+        }
+        .util-btn {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: all 0.2s ease;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .util-btn:hover { 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        .util-btn:active { 
+            transform: translateY(0); 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
+        }
+        .coaching-btn { 
+            background-color: #1e293b; 
+            color: white; 
+            border: 1px solid #334155; 
+        }
+        .coaching-btn:hover { 
+            background-color: #00853E; 
+            border-color: #00853E; 
+        }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .search-input:focus { border-color: #00853E; ring: 2px; ring-color: #00853E; }
-        .chart-card { background: white; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; height: 260px; transition: 0.2s hover; cursor: pointer; }
-        .chart-card:hover { border-color: #00853E; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        /* Icon sizing */
-        .nav-icon { width: 18px; height: 18px; margin-right: 12px; }
+        .search-input:focus { 
+            border-color: #00853E; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(0,133,62,0.15); 
+        }
+        .chart-card { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: 1rem; 
+            border: 1px solid #e5e7eb; 
+            height: 280px; 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        .chart-card:hover { 
+            border-color: #00853E; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.08); 
+            transform: translateY(-3px); 
+        }
+        .nav-icon { width: 20px; height: 20px; margin-right: 0.75rem; stroke-width: 2.2; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans overflow-hidden text-gray-800">
+<body class="bg-gray-50 text-gray-900 antialiased overflow-hidden">
 
-    <div class="flex h-screen relative">
-        <div class="w-64 bg-white shadow-xl z-10 flex flex-col border-r">
-            <div class="p-6 accenture-green text-white font-bold text-xl uppercase tracking-tighter text-center">Green Turtle Hub</div>
-           
-            <nav class="mt-4 flex-1">
-                <p class="px-6 py-2 text-[10px] font-black text-gray-400 uppercase">Navigation</p>
-               
-                <div id="btn-Deal" onclick="setView('Deal')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50 active">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-2xl z-10 flex flex-col border-r border-gray-200">
+            <div class="p-6 accenture-green text-white font-bold text-lg uppercase tracking-tight text-center shadow-md">
+                Green Turtle Hub
+            </div>
+
+            <nav class="mt-6 flex-1 px-4">
+                <p class="px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Navigation</p>
+
+                <div id="btn-Deal" onclick="setView('Deal')" class="sidebar-item p-4 cursor-pointer active">
                     <i data-lucide="layout-dashboard" class="nav-icon"></i> Deal Overview
                 </div>
-                <div id="btn-Team" onclick="setView('Team')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">
+                <div id="btn-Team" onclick="setView('Team')" class="sidebar-item p-4 cursor-pointer">
                     <i data-lucide="users" class="nav-icon"></i> Per Team Trend
                 </div>
-                <div id="btn-Analyst" onclick="setView('Analyst')" class="sidebar-item p-4 cursor-pointer hover:bg-gray-50">
+                <div id="btn-Analyst" onclick="setView('Analyst')" class="sidebar-item p-4 cursor-pointer">
                     <i data-lucide="trending-up" class="nav-icon"></i> Per Analyst Trend
                 </div>
-               
-                <div class="mx-6 my-4 border-t border-gray-200"></div>
 
-                <div class="px-6 space-y-2">
-                    <p class="py-2 text-[10px] font-black text-gray-400 uppercase">Utilities</p>
+                <div class="mx-2 my-6 border-t border-gray-200"></div>
 
-                    <!-- Hidden file input for real file selection -->
+                <div class="px-2 space-y-3">
+                    <p class="py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Utilities</p>
                     <input type="file" id="excelUpload" accept=".xlsx,.xls" class="hidden" />
-
-                    <button id="btnUploadExcel"
-                            class="util-btn group flex items-center w-full p-2.5 text-gray-600 rounded border border-gray-300 hover:bg-green-50 hover:border-green-400 hover:text-green-700 active:bg-green-100 active:border-green-600 active:text-green-800 transition-colors duration-150">
-                        <i data-lucide="file-up" class="w-3.5 h-3.5 mr-2.5 group-hover:text-green-600 transition-colors"></i>
+                    <button id="btnUploadExcel" class="util-btn group flex items-center w-full p-3 text-gray-700 border border-gray-300 hover:bg-green-50 hover:border-green-500 hover:text-green-800">
+                        <i data-lucide="file-up" class="w-4 h-4 mr-3 group-hover:text-green-600"></i>
                         Upload Excel
                     </button>
-
-                    <button id="btnExportPDF"
-                            class="util-btn group flex items-center w-full p-2.5 text-gray-600 rounded border border-gray-300 hover:bg-green-50 hover:border-green-400 hover:text-green-700 active:bg-green-100 active:border-green-600 active:text-green-800 transition-colors duration-150">
-                        <i data-lucide="file-text" class="w-3.5 h-3.5 mr-2.5 group-hover:text-green-600 transition-colors"></i>
+                    <button id="btnExportPDF" class="util-btn group flex items-center w-full p-3 text-gray-700 border border-gray-300 hover:bg-green-50 hover:border-green-500 hover:text-green-800">
+                        <i data-lucide="file-text" class="w-4 h-4 mr-3 group-hover:text-green-600"></i>
                         Export PDF
                     </button>
-
-                    <button onclick="location.reload()"
-                            class="util-btn group flex items-center w-full p-2.5 text-gray-600 rounded border border-gray-300 hover:bg-green-50 hover:border-green-400 hover:text-green-700 active:bg-green-100 active:border-green-600 active:text-green-800 transition-colors duration-150">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-2.5 group-hover:text-green-600 transition-colors"></i>
+                    <button onclick="location.reload()" class="util-btn group flex items-center w-full p-3 text-gray-700 border border-gray-300 hover:bg-green-50 hover:border-green-500 hover:text-green-800">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-3 group-hover:text-green-600"></i>
                         Reset Dashboard
                     </button>
                 </div>
             </nav>
 
-            <div class="p-4 space-y-3 bg-gray-50 border-t">
-                <button onclick="toggleCoachingLog()" class="coaching-btn util-btn flex items-center justify-center w-full py-3 rounded-lg shadow-lg">
-                    <i data-lucide="megaphone" class="w-4 h-4 mr-2"></i> Open Coaching Log
+            <div class="p-4 space-y-4 bg-gray-50 border-t border-gray-200">
+                <button onclick="toggleCoachingLog()" class="coaching-btn util-btn flex items-center justify-center w-full py-3 rounded-lg shadow-md hover:shadow-lg">
+                    <i data-lucide="megaphone" class="w-5 h-5 mr-2"></i> Open Coaching Log
                 </button>
-                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center italic">v2.1 Performance Suite</div>
+                <div class="text-xs text-gray-500 font-medium uppercase tracking-widest text-center italic">
+                    v2.1 Performance Suite
+                </div>
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b">
-                <div class="flex items-center space-x-6 ml-4">
-                    <div class="flex space-x-4 border-r pr-6">
-                        <button onclick="setWorkstream('Fraud', this)" class="tab-btn pb-2 active text-xs font-black uppercase">Fraud</button>
-                        <button onclick="setWorkstream('KYC', this)" class="tab-btn pb-2 text-gray-400 font-black text-xs uppercase">KYC</button>
-                        <button onclick="setWorkstream('AML', this)" class="tab-btn pb-2 text-gray-400 font-black text-xs uppercase">AML</button>
+            <header class="bg-white shadow-md p-4 flex justify-between items-center border-b border-gray-200">
+                <div class="flex items-center space-x-8 ml-4">
+                    <div class="flex space-x-6 border-r pr-8">
+                        <button onclick="setWorkstream('Fraud', this)" class="tab-btn pb-2 active text-sm font-semibold uppercase tracking-wide">Fraud</button>
+                        <button onclick="setWorkstream('KYC', this)" class="tab-btn pb-2 text-gray-500 font-semibold text-sm uppercase tracking-wide">KYC</button>
+                        <button onclick="setWorkstream('AML', this)" class="tab-btn pb-2 text-gray-500 font-semibold text-sm uppercase tracking-wide">AML</button>
                     </div>
-                    <div class="flex bg-gray-200 rounded-lg p-1 w-40 shadow-inner">
-                        <button id="toggle-MoM" onclick="setTimeline('Monthly')" class="flex-1 py-1 rounded text-[10px] toggle-active uppercase">Monthly</button>
-                        <button id="toggle-MTD" onclick="setTimeline('Weekly')" class="flex-1 py-1 rounded text-[10px] text-gray-500 font-black uppercase">Weekly</button>
+
+                    <div class="flex bg-gray-100 rounded-full p-1 w-48 shadow-sm">
+                        <button id="toggle-MoM" onclick="setTimeline('Monthly')" class="flex-1 py-1.5 px-4 rounded-full text-xs toggle-active uppercase tracking-wide">Monthly</button>
+                        <button id="toggle-MTD" onclick="setTimeline('Weekly')" class="flex-1 py-1.5 px-4 rounded-full text-xs text-gray-600 font-semibold uppercase tracking-wide">Weekly</button>
                     </div>
-                    <div id="entity-selector-container" class="hidden flex items-center bg-gray-100 rounded px-3 py-1 border border-gray-300">
-                        <select id="entity-selector" onchange="refresh()" class="bg-transparent text-xs font-black text-green-800 outline-none cursor-pointer"></select>
+
+                    <div id="entity-selector-container" class="hidden flex items-center bg-gray-100 rounded-full px-4 py-1.5 border border-gray-300 shadow-sm">
+                        <select id="entity-selector" onchange="refresh()" class="bg-transparent text-sm font-semibold text-green-800 outline-none cursor-pointer"></select>
                     </div>
                 </div>
-                <div id="breadcrumb" class="text-[10px] font-black text-gray-400 mr-4 uppercase tracking-[0.2em]">DEAL / FRAUD / MONTHLY</div>
+
+                <div id="breadcrumb" class="text-xs font-semibold text-gray-500 mr-4 uppercase tracking-[0.15em]">
+                    DEAL / FRAUD / MONTHLY
+                </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto p-6 space-y-6">
-                <div id="rag-container" class="grid grid-cols-6 gap-4"></div>
+            <main class="flex-1 overflow-y-auto p-8 space-y-8 bg-gray-50">
+                <div id="rag-container" class="grid grid-cols-6 gap-6"></div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <div class="chart-card"><h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Utilization</h3><canvas id="utilChart"></canvas></div>
-                    <div class="chart-card"><h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Productivity</h3><canvas id="prodChart"></canvas></div>
-                    <div class="chart-card"><h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Quality</h3><canvas id="qualChart"></canvas></div>
-                    <div class="chart-card"><h3 class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">Attendance</h3><canvas id="attChart"></canvas></div>
-                    <div class="chart-card border-l-4 border-l-purple-500 bg-purple-50/30">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-[10px] font-black text-purple-600 uppercase tracking-widest italic">Efficiency %</h3>
-                            <span class="text-[9px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded"></span>
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    <div class="chart-card"><h3 class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest italic">Utilization</h3><canvas id="utilChart"></canvas></div>
+                    <div class="chart-card"><h3 class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest italic">Productivity</h3><canvas id="prodChart"></canvas></div>
+                    <div class="chart-card"><h3 class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest italic">Quality</h3><canvas id="qualChart"></canvas></div>
+                    <div class="chart-card"><h3 class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest italic">Attendance</h3><canvas id="attChart"></canvas></div>
+                    <div class="chart-card border-l-4 border-l-purple-600 bg-purple-50/20">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xs font-semibold text-purple-700 uppercase tracking-widest italic">Efficiency %</h3>
+                            <span class="text-[10px] font-medium bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full"></span>
                         </div>
                         <canvas id="effChart"></canvas>
                     </div>
-                    <div class="chart-card border-l-4 border-l-orange-500 bg-orange-50/30">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-[10px] font-black text-orange-600 uppercase tracking-widest italic">Shrinkage %</h3>
-                            <span class="text-[9px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Lower is better</span>
+                    <div class="chart-card border-l-4 border-l-orange-600 bg-orange-50/20">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xs font-semibold text-orange-700 uppercase tracking-widest italic">Shrinkage %</h3>
+                            <span class="text-[10px] font-medium bg-orange-100 text-orange-800 px-2.5 py-1 rounded-full">Lower is better</span>
                         </div>
                         <canvas id="shrkChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow border border-l-[12px] border-blue-600">
-                    <h4 class="text-[11px] font-black text-blue-600 uppercase mb-2">Executive Summary & Operational Insights</h4>
-                    <p id="commentary-text" class="text-sm font-medium italic text-gray-700 leading-relaxed"></p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-[12px] border-blue-600">
+                    <h4 class="text-sm font-semibold text-blue-700 uppercase mb-3 tracking-wide">Executive Summary & Operational Insights</h4>
+                    <p id="commentary-text" class="text-base font-medium italic text-gray-700 leading-relaxed"></p>
                 </div>
             </main>
         </div>
 
-        <div id="drillModal" class="fixed inset-0 z-[100] hidden modal-bg flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div class="accenture-green p-4 flex justify-between items-center text-white">
-                    <h2 id="modalTitle" class="font-bold uppercase text-xs tracking-widest">Performance Analysis</h2>
-                    <button onclick="closeModal()" class="text-2xl leading-none">×</button>
+        <!-- Modals -->
+        <div id="drillModal" class="fixed inset-0 z-[100] hidden modal-bg flex items-center justify-center p-6">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all duration-300 scale-95">
+                <div class="accenture-green p-5 flex justify-between items-center text-white shadow-md">
+                    <h2 id="modalTitle" class="font-semibold uppercase text-sm tracking-widest">Performance Analysis</h2>
+                    <button onclick="closeModal()" class="text-3xl leading-none hover:text-gray-200 transition-colors">×</button>
                 </div>
                 <div id="modalContent" class="p-8"></div>
             </div>
         </div>
 
-        <div id="coachingModal" class="fixed inset-0 z-[110] hidden modal-bg flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-t-8 border-green-700">
+        <div id="coachingModal" class="fixed inset-0 z-[110] hidden modal-bg flex items-center justify-center p-6">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-t-8 border-green-700 transform transition-all duration-300 scale-95">
                 <form id="coachingForm" onsubmit="saveCoachingLog(event)" class="p-6">
-                    <h2 class="text-xl font-black text-gray-800 mb-1">Performance Coaching</h2>
-                    <p class="text-[10px] text-gray-400 uppercase font-black mb-6">Internal Documentation Only</p>
-                    <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-1">Performance Coaching</h2>
+                    <p class="text-xs text-gray-500 font-medium uppercase mb-6 tracking-wide">Internal Documentation Only</p>
+                    <div class="space-y-5">
                         <div>
-                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Select Analyst</label>
-                            <select id="logAnalyst" class="w-full border rounded p-2 text-sm font-bold bg-gray-50 outline-none">
-                                <option>Mari Esparza</option><option>Boss Darwin</option><option>Mark Butas</option><option>Angel Acosta</option><option>Kiezel Vega</option>
+                            <label class="text-xs font-semibold text-gray-500 uppercase block mb-1.5">Select Analyst</label>
+                            <select id="logAnalyst" class="w-full border border-gray-300 rounded-md p-2.5 text-sm font-medium bg-gray-50 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition">
+                                <option>Mari Esparza</option>
+                                <option>Boss Darwin</option>
+                                <option>Mark Butas</option>
+                                <option>Angel Acosta</option>
+                                <option>Kiezel Vega</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Target Metric</label>
-                            <select id="logMetric" class="w-full border rounded p-2 text-sm font-bold bg-gray-50 outline-none">
-                                <option>Utilization</option><option>Productivity</option><option>Quality</option><option>Attendance</option><option>Efficiency</option><option>Shrinkage</option>
+                            <label class="text-xs font-semibold text-gray-500 uppercase block mb-1.5">Target Metric</label>
+                            <select id="logMetric" class="w-full border border-gray-300 rounded-md p-2.5 text-sm font-medium bg-gray-50 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition">
+                                <option>Utilization</option>
+                                <option>Productivity</option>
+                                <option>Quality</option>
+                                <option>Attendance</option>
+                                <option>Efficiency</option>
+                                <option>Shrinkage</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-gray-400 uppercase block mb-1">Action Notes</label>
-                            <textarea id="logNotes" required class="w-full border rounded p-3 text-sm min-h-[100px] focus:ring-2 focus:ring-green-500 outline-none" placeholder="Root cause and agreed resolution..."></textarea>
+                            <label class="text-xs font-semibold text-gray-500 uppercase block mb-1.5">Action Notes</label>
+                            <textarea id="logNotes" required class="w-full border border-gray-300 rounded-md p-3 text-sm min-h-[120px] focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition" placeholder="Root cause and agreed resolution..."></textarea>
                         </div>
                     </div>
-                    <div class="mt-6 flex justify-end space-x-3 border-t pt-4">
-                        <button type="button" onclick="toggleCoachingLog()" class="px-4 py-2 text-xs font-black uppercase text-gray-400">Cancel</button>
-                        <button type="submit" class="accenture-green text-white px-6 py-2 rounded text-xs font-black uppercase shadow-lg">Save to Log</button>
+                    <div class="mt-6 flex justify-end space-x-4 border-t pt-5">
+                        <button type="button" onclick="toggleCoachingLog()" class="px-5 py-2 text-sm font-semibold uppercase text-gray-600 hover:text-gray-800 transition">Cancel</button>
+                        <button type="submit" class="accenture-green text-white px-6 py-2 rounded-md text-sm font-semibold uppercase shadow-md hover:shadow-lg transition-shadow">Save to Log</button>
                     </div>
                 </form>
             </div>
@@ -186,19 +253,33 @@
     </div>
 
     <script>
-        // Initialize Lucide Icons
         lucide.createIcons();
-
         Chart.register(ChartDataLabels);
-        let currentWS = 'Fraud', currentView = 'Deal', currentTimeline = 'Monthly';
+
+        let currentWS = 'Fraud';
+        let currentView = 'Deal';
+        let currentTimeline = 'Monthly';
         let charts = {};
-        const metricsFull = { util: 'Utilization', prod: 'Productivity', qual: 'Quality', att: 'Attendance', eff: 'Efficiency %', shrk: 'Shrinkage %' };
+
+        const metricsFull = { 
+            util: 'Utilization', 
+            prod: 'Productivity', 
+            qual: 'Quality', 
+            att: 'Attendance', 
+            eff: 'Efficiency %', 
+            shrk: 'Shrinkage %' 
+        };
+
         const targets = { util: 90, prod: 85, qual: 95, att: 98, eff: 92, shrk: 10 };
         const analysts = ['Mari Esparza', 'Boss Darwin', 'Mark Butas', 'Angel Acosta', 'Kiezel Vega'];
         let lastGeneratedAnalystData = [];
 
-        function getLabels() { return currentTimeline === 'Monthly' ? ['Oct', 'Nov', 'Dec'] : ['Week 1', 'Week 2', 'Week 3', 'Week 4']; }
-       
+        function getLabels() {
+            return currentTimeline === 'Monthly' 
+                ? ['Oct', 'Nov', 'Dec'] 
+                : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        }
+
         function getData(m) {
             const labels = getLabels();
             if (m === 'shrk') return labels.map(() => Math.round(targets[m] + (Math.random() * 8 - 4)));
@@ -225,19 +306,43 @@
                     data: {
                         labels: getLabels(),
                         datasets: [
-                            { label: 'Actual', data: getData(m), backgroundColor: m === 'eff' ? '#a855f7' : (m === 'shrk' ? '#f97316' : '#00853E'), borderRadius: 4, order: 2 },
-                            { label: 'Target', data: getLabels().map(() => targets[m]), borderColor: '#ff4d4d', borderWidth: 2, borderDash: [5, 5], type: 'line', pointRadius: 0, order: 1 }
+                            { 
+                                label: 'Actual', 
+                                data: getData(m), 
+                                backgroundColor: m === 'eff' ? '#a855f7' : (m === 'shrk' ? '#f97316' : '#00853E'), 
+                                borderRadius: 6, 
+                                order: 2 
+                            },
+                            { 
+                                label: 'Target', 
+                                data: getLabels().map(() => targets[m]), 
+                                borderColor: '#ff4d4d', 
+                                borderWidth: 2, 
+                                borderDash: [5, 5], 
+                                type: 'line', 
+                                pointRadius: 0, 
+                                order: 1 
+                            }
                         ]
                     },
                     options: {
                         maintainAspectRatio: false,
-                        layout: { padding: { top: 30 } },
+                        layout: { padding: { top: 35 } },
                         onClick: (e, els) => { if (els.length > 0) openDrilldown(m, els[0].index); },
                         plugins: {
-                            datalabels: { anchor: 'end', align: 'top', color: '#000', font: { weight: '900', size: 10 }, formatter: (v, c) => c.datasetIndex === 0 ? v + '%' : '' },
+                            datalabels: { 
+                                anchor: 'end', 
+                                align: 'top', 
+                                color: '#000', 
+                                font: { weight: 'bold', size: 11 }, 
+                                formatter: (v, c) => c.datasetIndex === 0 ? v + '%' : '' 
+                            },
                             legend: { display: false }
                         },
-                        scales: { y: { beginAtZero: true, max: m === 'shrk' ? 40 : 115, display: false }, x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } } }
+                        scales: { 
+                            y: { beginAtZero: true, max: m === 'shrk' ? 40 : 115, display: false }, 
+                            x: { grid: { display: false }, ticks: { font: { weight: '600', size: 11 } } } 
+                        }
                     }
                 });
             });
@@ -245,8 +350,11 @@
         }
 
         function refresh() {
-            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.toggle('active', i.id === `btn-${currentView}`));
-            document.getElementById('breadcrumb').innerText = `${currentView} / ${currentWS} / ${currentTimeline}`;
+            document.querySelectorAll('.sidebar-item').forEach(i => {
+                i.classList.toggle('active', i.id === `btn-${currentView}`);
+            });
+            document.getElementById('breadcrumb').innerText = `${currentView.toUpperCase()} / ${currentWS.toUpperCase()} / ${currentTimeline.toUpperCase()}`;
+            
             Object.keys(charts).forEach(m => {
                 charts[m].data.labels = getLabels();
                 charts[m].data.datasets[0].data = getData(m);
@@ -265,18 +373,26 @@
                 let colorClass = 'border-green-500';
                 const isFailing = m === 'shrk' ? (current > target + 5) : (current < target - 5);
                 const isWarning = m === 'shrk' ? (current > target) : (current < target);
-                if (isFailing) { colorClass = 'border-red-500'; failures.push(metricsFull[m]); }
-                else if (isWarning) { colorClass = 'border-yellow-500'; }
-                html += `<div class="bg-white p-4 rounded shadow border-l-8 ${colorClass}">
-                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-tighter">${metricsFull[m]}</p>
-                    <div class="flex items-baseline justify-between mt-1">
-                        <span class="text-xl font-black">${current}%</span>
-                        <span class="text-[9px] text-gray-400 font-bold">TGT: ${target}%</span>
-                    </div>
-                </div>`;
+
+                if (isFailing) { 
+                    colorClass = 'border-red-500'; 
+                    failures.push(metricsFull[m]); 
+                }
+                else if (isWarning) { 
+                    colorClass = 'border-yellow-500'; 
+                }
+
+                html += `
+                    <div class="bg-white p-5 rounded-lg shadow-md border-l-8 ${colorClass}">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">${metricsFull[m]}</p>
+                        <div class="flex items-baseline justify-between mt-2">
+                            <span class="text-2xl font-bold">${current}%</span>
+                            <span class="text-[10px] text-gray-500 font-medium">TGT: ${target}%</span>
+                        </div>
+                    </div>`;
             });
             document.getElementById('rag-container').innerHTML = html;
-           
+
             const comment = failures.length > 0
                 ? `Operational Alert: ${failures.join(' & ')} currently outside of variance. Recommended immediate desk-side support for ${currentWS} workstream.`
                 : `Delivery Excellence: Current ${currentWS} performance metrics are within green thresholds. All systems nominal.`;
@@ -288,8 +404,9 @@
             const target = targets[m];
             const period = getLabels()[index];
             const actions = getActionItems(m);
-           
+
             document.getElementById('modalTitle').innerText = `${metricsFull[m]} Analysis - ${period}`;
+
             let modalHtml = '';
             if (currentView === 'Team') {
                 const selectedTeam = document.getElementById('entity-selector').value;
@@ -297,38 +414,43 @@
                     const currentScore = Math.min(Math.round(targets[m] + (Math.random() * 20 - 10)), 100);
                     return { name, score: currentScore, target: targets[m] };
                 });
-               
+
                 modalHtml = `
-                    <div class="mb-4 flex justify-between items-end">
+                    <div class="mb-5 flex justify-between items-end">
                         <div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase">Team Breakdown</p>
-                            <h3 class="text-lg font-black text-green-700">${selectedTeam}</h3>
+                            <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Team Breakdown</p>
+                            <h3 class="text-xl font-bold text-green-700">${selectedTeam}</h3>
                         </div>
-                        <input type="text" id="analystSearch" onkeyup="filterAnalysts()" placeholder="Search..." class="search-input border rounded-full px-4 py-1.5 text-xs outline-none w-32 shadow-inner">
+                        <input type="text" id="analystSearch" onkeyup="filterAnalysts()" placeholder="Search analyst..." class="search-input border border-gray-300 rounded-full px-4 py-2 text-sm outline-none w-40 shadow-sm focus:shadow-md transition">
                     </div>
-                    <div id="analystList" class="space-y-3 max-h-72 overflow-y-auto pr-2">
+                    <div id="analystList" class="space-y-4 max-h-80 overflow-y-auto pr-3">
                         ${renderAnalystList(lastGeneratedAnalystData, m)}
                     </div>
-                    <div class="mt-4 pt-4 border-t flex justify-between items-center">
-                         <button onclick="copyToClipboard()" class="text-[9px] font-bold text-blue-600 uppercase">📋 Copy Report</button>
-                         <p class="text-[9px] text-gray-400 font-medium italic">* Data verified for internal reporting.</p>
+                    <div class="mt-5 pt-5 border-t flex justify-between items-center">
+                        <button onclick="copyToClipboard()" class="text-sm font-medium text-blue-600 uppercase hover:text-blue-800 transition">📋 Copy Report</button>
+                        <p class="text-[10px] text-gray-500 font-medium italic">* Data verified for internal reporting.</p>
                     </div>`;
             } else {
-                modalHtml = `<div class="text-center py-6">
-                    <p class="text-[10px] font-black text-gray-400 uppercase">Final Metric</p>
-                    <p class="text-6xl font-black my-2">${actual}%</p>
-                    <p class="text-sm text-gray-500 font-bold mb-8">Target: ${target}%</p>
-                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-left max-w-xs mx-auto">
-                        <p class="text-[10px] font-black text-blue-600 uppercase mb-2">Action Items</p>
-                        <p class="text-[11px] text-gray-700 leading-relaxed font-semibold">
-                            ${actions.map((item, i) => `${i+1}. ${item}`).join('<br>')}
-                        </p>
-                    </div>
-                    <button onclick="closeModal(); toggleCoachingLog();" class="mt-6 w-full accenture-green text-white py-4 rounded-xl text-xs font-black uppercase shadow-xl">Record Coaching Entry</button>
-                </div>`;
+                modalHtml = `
+                    <div class="text-center py-8">
+                        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Final Metric</p>
+                        <p class="text-7xl font-bold my-3">${actual}%</p>
+                        <p class="text-base text-gray-600 font-medium mb-10">Target: ${target}%</p>
+                        <div class="bg-blue-50 p-5 rounded-xl border border-blue-200 text-left max-w-md mx-auto shadow-sm">
+                            <p class="text-[10px] font-semibold text-blue-600 uppercase mb-3 tracking-wide">Action Items</p>
+                            <p class="text-sm text-gray-700 leading-relaxed font-medium">
+                                ${actions.map((item, i) => `${i+1}. ${item}`).join('<br>')}
+                            </p>
+                        </div>
+                        <button onclick="closeModal(); toggleCoachingLog();" class="mt-8 w-full accenture-green text-white py-4 rounded-xl text-sm font-semibold uppercase shadow-lg hover:shadow-xl transition-shadow">
+                            Record Coaching Entry
+                        </button>
+                    </div>`;
             }
+
             document.getElementById('modalContent').innerHTML = modalHtml;
             document.getElementById('drillModal').classList.remove('hidden');
+            setTimeout(() => document.querySelector('#drillModal .scale-95')?.classList.remove('scale-95'), 50);
         }
 
         function renderAnalystList(data, m) {
@@ -337,16 +459,22 @@
                 const isTop = a.score === topScore;
                 const isGood = m === 'shrk' ? a.score <= a.target : a.score >= a.target;
                 const color = isGood ? 'text-green-600' : 'text-red-500';
-                const badge = (isTop && isGood) ? '<span class="ml-2 bg-yellow-400 text-white text-[8px] px-2 py-0.5 rounded-full font-black animate-pulse">⭐ STAR</span>' : '';
+                const badge = (isTop && isGood) ? '<span class="ml-3 bg-yellow-300 text-yellow-800 text-[9px] px-2.5 py-1 rounded-full font-semibold animate-pulse">⭐ STAR</span>' : '';
                 return `
-                    <div class="analyst-row flex justify-between items-center p-3 rounded-lg border bg-gray-50 border-gray-100" data-name="${a.name.toLowerCase()}">
+                    <div class="analyst-row flex justify-between items-center p-4 rounded-lg border bg-gray-50 border-gray-200 shadow-sm hover:shadow-md transition-shadow" data-name="${a.name.toLowerCase()}">
                         <div class="flex flex-col">
-                            <div class="flex items-center"><span class="text-xs font-black text-gray-800">${a.name}</span>${badge}</div>
-                            <span class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">Variance: ${a.score - a.target}% from TGT</span>
+                            <div class="flex items-center">
+                                <span class="text-sm font-semibold text-gray-800">${a.name}</span>${badge}
+                            </div>
+                            <span class="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+                                Variance: ${a.score - a.target}% from TGT
+                            </span>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <span class="text-sm font-black ${color}">${a.score}%</span>
-                            <button onclick="toggleCoachingLog();" class="text-[9px] bg-white border border-gray-300 px-3 py-1.5 rounded font-black uppercase hover:bg-black hover:text-white transition">Coach</button>
+                        <div class="flex items-center space-x-5">
+                            <span class="text-base font-bold ${color}">${a.score}%</span>
+                            <button onclick="toggleCoachingLog();" class="text-sm bg-white border border-gray-300 px-4 py-2 rounded-md font-semibold uppercase hover:bg-gray-900 hover:text-white transition-colors">
+                                Coach
+                            </button>
                         </div>
                     </div>`;
             }).join('');
@@ -360,48 +488,63 @@
         }
 
         function copyToClipboard() {
-            const text = lastGeneratedAnalystData.map(a => `${a.name}: ${a.score}`).join('\n');
+            const text = lastGeneratedAnalystData.map(a => `${a.name}: ${a.score}%`).join('\n');
             navigator.clipboard.writeText(text);
-            alert("Report data copied!");
+            alert("Report data copied to clipboard!");
         }
 
-        function toggleCoachingLog() { document.getElementById('coachingModal').classList.toggle('hidden'); }
-        function closeModal() { document.getElementById('drillModal').classList.add('hidden'); }
-       
+        function toggleCoachingLog() { 
+            document.getElementById('coachingModal').classList.toggle('hidden'); 
+            setTimeout(() => document.querySelector('#coachingModal .scale-95')?.classList.remove('scale-95'), 50);
+        }
+
+        function closeModal() { 
+            document.getElementById('drillModal').classList.add('hidden'); 
+        }
+
         function setTimeline(tl) {
             currentTimeline = tl;
-            document.getElementById('toggle-MoM').className = tl === 'Monthly' ? 'flex-1 py-1 rounded text-[10px] toggle-active' : 'flex-1 py-1 rounded text-[10px] text-gray-500 font-black';
-            document.getElementById('toggle-MTD').className = tl === 'Weekly' ? 'flex-1 py-1 rounded text-[10px] toggle-active' : 'flex-1 py-1 rounded text-[10px] text-gray-500 font-black';
+            document.getElementById('toggle-MoM').className = tl === 'Monthly' 
+                ? 'flex-1 py-1.5 px-4 rounded-full text-xs toggle-active uppercase tracking-wide' 
+                : 'flex-1 py-1.5 px-4 rounded-full text-xs text-gray-600 font-semibold uppercase tracking-wide';
+            document.getElementById('toggle-MTD').className = tl === 'Weekly' 
+                ? 'flex-1 py-1.5 px-4 rounded-full text-xs toggle-active uppercase tracking-wide' 
+                : 'flex-1 py-1.5 px-4 rounded-full text-xs text-gray-600 font-semibold uppercase tracking-wide';
             refresh();
         }
-       
+
         function setView(v) {
             currentView = v;
             const container = document.getElementById('entity-selector-container');
-            if (v === 'Deal') { container.classList.add('hidden'); }
-            else {
+            if (v === 'Deal') {
+                container.classList.add('hidden');
+            } else {
                 container.classList.remove('hidden');
-                document.getElementById('entity-selector').innerHTML = v === 'Team' ? ['Alpha', 'Beta', 'Gamma'].map(t => `<option>Team ${t}</option>`).join('') : analysts.map(a => `<option>${a}</option>`).join('');
+                document.getElementById('entity-selector').innerHTML = v === 'Team' 
+                    ? ['Alpha', 'Beta', 'Gamma'].map(t => `<option>Team ${t}</option>`).join('') 
+                    : analysts.map(a => `<option>${a}</option>`).join('');
             }
             refresh();
         }
-       
+
         function setWorkstream(ws, btn) {
             currentWS = ws;
-            document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active', 'text-gray-800'); b.classList.add('text-gray-400'); });
-            btn.classList.add('active', 'text-gray-800');
+            document.querySelectorAll('.tab-btn').forEach(b => { 
+                b.classList.remove('active', 'text-gray-900'); 
+                b.classList.add('text-gray-500'); 
+            });
+            btn.classList.add('active', 'text-gray-900');
             refresh();
         }
 
         function saveCoachingLog(e) {
             e.preventDefault();
-            alert("Entry saved internally.");
+            alert("Coaching entry saved internally.");
             e.target.reset();
             toggleCoachingLog();
         }
 
-        // ────────────────────────────────────────────────
-        // Utilities - Upload Excel real file picker
+        // Upload button trigger
         document.getElementById('btnUploadExcel').addEventListener('click', () => {
             document.getElementById('excelUpload').click();
         });
@@ -409,20 +552,19 @@
         document.getElementById('excelUpload').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                alert(`Selected file: ${file.name}\n(size: ${(file.size / 1024).toFixed(1)} KB)`);
-                // You can later add actual upload logic here (FormData + fetch)
+                alert(`Selected file: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB`);
             }
-            e.target.value = ''; // allow selecting the same file again
+            e.target.value = '';
         });
 
-        // Utilities - Export PDF with confirmation
+        // Export PDF placeholder
         document.getElementById('btnExportPDF').addEventListener('click', () => {
-            if (confirm("Export current dashboard view to PDF?\n\n(This is a placeholder action)")) {
-                alert("Exporting to PDF... (placeholder)\nReal PDF export would need html2pdf.js or similar.");
+            if (confirm("Export current dashboard view to PDF?\n(This is a placeholder action)")) {
+                alert("Exporting to PDF... (placeholder)\nReal export would require html2pdf.js or similar.");
             }
         });
-        // ────────────────────────────────────────────────
 
+        // Initialize
         window.onload = initCharts;
     </script>
 </body>
